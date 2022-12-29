@@ -1,8 +1,8 @@
 import random
 from collections import Counter
 
-DIE_POINTS = {1: 100, 5: 50}
-TRIPLET_POINTS = {1: 1000, 2: 200, 3: 300, 4: 400, 5: 500, 6: 600}
+single_points = {1: 100, 5: 50}
+triple_points = {1: 1000, 2: 200, 3: 300, 4: 400, 5: 500, 6: 600}
 
 
 class GameLogic:
@@ -11,44 +11,83 @@ class GameLogic:
 
     @staticmethod
     def calculate_score(tuple):
+        dice_counts = Counter(tuple)
+
+        if len(dice_counts) == 6:
+            return 1500
+
+        total = 0
+
+        if len(dice_counts) == 3 and all(value == 2 for value in dice_counts.values()):
+            return 1500
+
+        for number, count in dice_counts.items():
+            if count < 3:
+                total += count * single_points.get(number, 0)
+            elif count == 3:
+                total += triple_points[number]
+            elif count == 4:
+                total += triple_points[number] * 2
+            elif count == 5:
+                total += triple_points[number] * 3
+            elif count == 6:
+                total += triple_points[number] * 4
+        return total
+
+    @staticmethod
+    def roll_dice(dice):
+        number_list = []
+        for num in range(dice):
+            roll = random.randint(1, 6)
+            number_list.append(roll)
+        number_list = tuple(number_list)
+        return number_list
+
+    @staticmethod
+    def get_scorers(tuple):
         """
-        INPUTS >>  Tuple - a collection of numbers from 1-6. Length can be 1-6
-        OUTPUT >>  Integer - score based on the collection of dice
+        INPUT >> Tuple - The dice list that was rolled
+        OUPUT >> Tuple - Only the dices that are worth points
         """
         counts = Counter(tuple)
 
         # Straights
         if len(counts) == 6:
-            return 1500
+            return tuple
 
         # 3 Pairs
         if len(counts) == 3:
             if all(value == 2 for value in counts.values()):
-                return 1500
+                return tuple
 
-        result = 0
+        result = []
 
         for number, count in counts.items():
-            if count < 3:
-                result += count * DIE_POINTS.get(number, 0)
-            elif count == 3:
-                result += TRIPLET_POINTS[number]
-            elif count == 4:
-                result += TRIPLET_POINTS[number] * 2
-            elif count == 5:
-                result += TRIPLET_POINTS[number] * 3
-            elif count == 6:
-                result += TRIPLET_POINTS[number] * 4
+            if count >= 3:
+                result += [number] * count
+            elif number == 1 or number == 5:
+                result += [number] * count
 
         return result
 
     @staticmethod
-    def roll_dice(num_dice):
+    def validate_keepers(roll, keepers):
         """
-        INPUT >> Integer - a number between 1 and 6
-        OUTPUT >> Tuple - with length of input with numbers between 1 and 6
+        INPUT >> - Tuple - the actual list of dices
+                 - Tuple - The users choice
+        OUTPUT >>  Boolean - True/False if user picked from the actual list
         """
-        dice_list = []
-        for dice in range(num_dice):
-            dice_list.append(random.randint(1, 6))
-        return tuple(dice_list)
+        count1 = Counter(roll)
+        count2 = Counter(keepers)
+
+        for number, count in count2.items():
+            if number not in count1:
+                return False
+            elif count > count1[number]:
+                return False
+        return True
+
+
+
+
+
