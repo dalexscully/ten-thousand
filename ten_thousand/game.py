@@ -12,7 +12,7 @@ class Game:
         self.current_dice_options = []
 
     def welcome_greeting(self):
-        print('Welcome to ten Ten Thousand')
+        print('Welcome to Ten Thousand')
         print("(y)es to play or (n)o to decline")
 
     def new_roll(self, roller):
@@ -38,7 +38,19 @@ class Game:
 
     def quit_game(self):
         print(f"Thanks for playing. You earned {self.bank.balance} points")
-        sys.exit("Exiting")
+        sys.exit()
+
+    def zilch(self):
+        print("****************************************")
+        print("**        Zilch!!! Round over         **")
+        print("****************************************")
+        self.bank.clear_shelf()
+        self.prepare_new_round()
+
+    def cheater(self):
+        print("Cheater!!! Or possibly made a typo...")
+        dice_string = self.dice_to_string(self.current_dice_options)
+        print(dice_string)
 
     def dice_to_string(self, tuple):
         string = "*** "
@@ -53,6 +65,7 @@ class Game:
 
     def play(self, roller=GameLogic.roll_dice):
 
+        global users_dice_picks, current_score
         self.welcome_greeting()
 
         play_game = input("> ")
@@ -70,15 +83,29 @@ class Game:
 
                 self.new_roll(roller)
 
-                user_answer = input("Enter dice to keep, or (q)uit:\n> ")
-                user_answer = user_answer.replace(" ", "")
-                if user_answer == "q":
-                    self.quit_game()
-                users_dice_picks = self.string_to_list(user_answer)
+                if len(GameLogic.get_scorers(self.current_dice_options)) == 0:
+                    self.zilch()
+                    same_round = False
+                    continue
 
-                if GameLogic.validate_keepers(self.current_dice_options, users_dice_picks):
-                    self.remaining_dice -= len(users_dice_picks)
-                current_score = GameLogic.calculate_score(tuple(users_dice_picks))
+                correct_pick = False
+                while not correct_pick:
+                    try:
+                        user_answer = input("Enter dice to keep, or (q)uit:\n> ")
+                        user_answer = user_answer.replace(" ", "")
+                        if user_answer == "q":
+                            self.quit_game()
+                        users_dice_picks = self.string_to_list(user_answer)
+
+                    except ValueError as error:
+                        self.cheater()
+
+                    if GameLogic.validate_keepers(self.current_dice_options, users_dice_picks):
+                        self.remaining_dice -= len(users_dice_picks)
+                        current_score = GameLogic.calculate_score(tuple(users_dice_picks))
+                        correct_pick = True
+                    else:
+                        self.cheater()
 
                 if self.remaining_dice == 0:
                     self.shelf_score(current_score)
