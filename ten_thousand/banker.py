@@ -1,4 +1,3 @@
-
 class Banker:
     # banker is responsible for tracking points on the shelf and in the bank
 

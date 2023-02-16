@@ -7,8 +7,7 @@ pytestmark = [pytest.mark.version_3]
 
 
 def test_repeat_roller():
-    """Allow setting aside scoring dice and rolling the rest
-    """
+    """Allow setting aside scoring dice and rolling the rest"""
     diffs = diff(play, path="tests/version_3/repeat_roller.sim.txt")
     assert not diffs, diffs
 

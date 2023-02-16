@@ -1,93 +1,104 @@
-import random
 from collections import Counter
-
-single_points = {1: 100, 5: 50}
-triple_points = {1: 1000, 2: 200, 3: 300, 4: 400, 5: 500, 6: 600}
+from random import randint
 
 
 class GameLogic:
-    def __init__(self):
-        pass
+    @staticmethod
+    def roll_dice(num=6):
+        # version_1
+
+        return tuple([randint(1, 6) for _ in range(num)])
 
     @staticmethod
-    def calculate_score(tuple):
-        dice_counts = Counter(tuple)
-
-        if len(dice_counts) == 6:
-            return 1500
-
-        total = 0
-
-        if len(dice_counts) == 3 and all(value == 2 for value in dice_counts.values()):
-            return 1500
-
-        for number, count in dice_counts.items():
-            if count < 3:
-                total += count * single_points.get(number, 0)
-            elif count == 3:
-                total += triple_points[number]
-            elif count == 4:
-                total += triple_points[number] * 2
-            elif count == 5:
-                total += triple_points[number] * 3
-            elif count == 6:
-                total += triple_points[number] * 4
-        return total
-
-    @staticmethod
-    def roll_dice(dice):
-        number_list = []
-        for num in range(dice):
-            roll = random.randint(1, 6)
-            number_list.append(roll)
-        number_list = tuple(number_list)
-        return number_list
-
-    @staticmethod
-    def get_scorers(tuple):
+    def calculate_score(dice):
         """
-        INPUT >> Tuple - The dice list that was rolled
-        OUPUT >> Tuple - Only the dices that are worth points
+        dice is a tuple of integers that represent the user's selected dice pulled out from current roll
         """
-        counts = Counter(tuple)
+        # version_1
 
-        # Straights
+        if len(dice) > 6:
+            raise Exception("Cheating Cheater!")
+
+        counts = Counter(dice)
+
         if len(counts) == 6:
-            return tuple
+            return 1500
 
-        # 3 Pairs
-        if len(counts) == 3:
-            if all(value == 2 for value in counts.values()):
-                return tuple
+        if len(counts) == 3 and all(val == 2 for val in counts.values()):
+            return 1500
 
-        result = []
+        score = 0
 
-        for number, count in counts.items():
-            if count >= 3:
-                result += [number] * count
-            elif number == 1 or number == 5:
-                result += [number] * count
+        ones_used = fives_used = False
 
-        return result
+        for num in range(1, 6 + 1):
+
+            pip_count = counts[num]
+
+            if pip_count >= 3:
+
+                if num == 1:
+
+                    ones_used = True
+
+                elif num == 5:
+
+                    fives_used = True
+
+                score += num * 100
+
+                # handle 4,5,6 of a kind
+                pips_beyond_3 = pip_count - 3
+
+                score += score * pips_beyond_3
+
+                # bug if 2 threesomes? Let's test it
+
+                # 1s are worth 10x
+                if num == 1:
+                    score *= 10
+
+        if not ones_used:
+            score += counts.get(1, 0) * 100
+
+        if not fives_used:
+            score += counts.get(5, 0) * 50
+
+        return score
 
     @staticmethod
     def validate_keepers(roll, keepers):
-        """
-        INPUT >> - Tuple - the actual list of dices
-                 - Tuple - The users choice
-        OUTPUT >>  Boolean - True/False if user picked from the actual list
-        """
-        count1 = Counter(roll)
-        count2 = Counter(keepers)
+        # version_3
 
-        for number, count in count2.items():
-            if number not in count1:
-                return False
-            elif count > count1[number]:
-                return False
-        return True
+        # pro tip: you can do some math operations with counters
+        # check https://docs.python.org/3/library/collections.html#collections.Counter
+        keeper_counter = Counter(keepers)
+        roll_counter = Counter(roll)
 
+        # a "valid" result is an empty Counter result
+        result = keeper_counter - roll_counter
 
+        # an empty Counter is falsy, so use "not" to flip it
+        return not result
 
+    @staticmethod
+    def get_scorers(dice):
+        # version_3
 
+        all_dice_score = GameLogic.calculate_score(dice)
 
+        if all_dice_score == 0:
+            return tuple()
+
+        scorers = []
+
+        # for i in range(len(dice)):
+
+        for i, val in enumerate(dice):
+            sub_roll = dice[:i] + dice[i + 1 :]
+            sub_score = GameLogic.calculate_score(sub_roll)
+
+            if sub_score != all_dice_score:
+                scorers.append(val)
+
+        return tuple(scorers)
