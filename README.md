@@ -13,8 +13,10 @@ Python, its standard library, object-oriented programming and test driven develo
 - PyCharm
 - Venv
 - pytest-watch
+- to run bot 'python3.11 bots.py'
+- run test 'pytest -k test_game_complete.py'
 <hr>
 
 ## Collaborators
 
-Tracey Oakley (We ponder together how to structure out a game plan via whiteboarding)
+Tracey Oakley and Eric Kinthia (We ponder together how to structure out a game plan via whiteboarding)

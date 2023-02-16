@@ -52,7 +52,7 @@ class GameLogic:
 
                 score += score * pips_beyond_3
 
-                # bug if 2 threesomes? Let's test it
+                # bug if 2 threesomes? Let's tests it
 
                 # 1s are worth 10x
                 if num == 1:
